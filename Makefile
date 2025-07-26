@@ -1,22 +1,24 @@
 CC = gcc
-CFLAGS = -Iinclude -g -Wall
-VPATH = src/btree:src/pager:tests
+CFLAGS = -Iinclude -g -Wall -Wextra -std=c99
 BUILD_DIR = build
 BIN_DIR = bin
-TARGET = $(BIN_DIR)/test_btree
 
-SRCS = btree.c pager.c test_btree.c
-OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS))
+# Source files
+BTREE_SRC = src/btree/btree.c
+PAGER_SRC = src/pager/pager.c
+TEST_SRC = tests/test_btree.c
 
-.PHONY: all test clean
+# Object files
+BTREE_OBJ = $(BUILD_DIR)/btree.o
+PAGER_OBJ = $(BUILD_DIR)/pager.o
+TEST_OBJ = $(BUILD_DIR)/test_btree.o
 
-all: $(TARGET)
+# Targets
+TEST_BIN = $(BIN_DIR)/test_btree
 
-$(TARGET): $(OBJS) | $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+.PHONY: all clean test
 
-$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+all: $(TEST_BIN)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -24,8 +26,22 @@ $(BUILD_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-test: all
-	./$(TARGET)
+$(BTREE_OBJ): $(BTREE_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(PAGER_OBJ): $(PAGER_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TEST_OBJ): $(TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TEST_BIN): $(BTREE_OBJ) $(PAGER_OBJ) $(TEST_OBJ) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+
+test: $(TEST_BIN)
+	@echo "Running comprehensive B-Tree tests..."
+	./$(TEST_BIN)
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -f *.db
