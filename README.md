@@ -1,3 +1,4 @@
+# Project is still under Work
 # miniSQL – A Lightweight SQL-like Database in C
 
 ## 📌 Overview
